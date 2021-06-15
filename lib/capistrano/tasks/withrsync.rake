@@ -1,6 +1,3 @@
-Rake::Task[:'deploy:check'].enhance [:'rsync:override_scm']
-Rake::Task[:'deploy:updating'].enhance [:'rsync:override_scm']
-
 namespace :rsync do
   set :rsync_options, %w(
     --recursive
@@ -27,30 +24,9 @@ namespace :rsync do
 
   set :rsync_with_submodules, false
 
-  desc 'Override scm tasks'
-  task :override_scm do
-    Rake::Task[:"#{scm}:check"].delete
-    Rake::Task.define_task(:"#{scm}:check") do
-      invoke :'rsync:check'
-    end
-
-    Rake::Task[:"#{scm}:create_release"].delete
-    Rake::Task.define_task(:"#{scm}:create_release") do
-      invoke :'rsync:release'
-    end
-
-    Rake::Task[:"#{scm}:set_current_revision"].delete
-    Rake::Task.define_task(:"#{scm}:set_current_revision") do
-      invoke :'rsync:set_current_revision'
-    end
-  end
-
   desc 'Check that the repository is reachable'
   task :check do
     fetch(:branch)
-    run_locally do
-      exit 1 unless strategy.check
-    end
 
     invoke :'rsync:create_dest'
   end
@@ -82,6 +58,14 @@ namespace :rsync do
               ('--recursive --shallow-submodules' if fetch(:rsync_with_submodules)),
               fetch(:repo_url),
               fetch(:rsync_src)
+
+      if fetch(:repo_tree)
+        within fetch(:rsync_src) do
+          with FILTER_BRANCH_SQUELCH_WARNING: 1 do
+            execute :git, :'filter-branch', "--subdirectory-filter #{fetch(:repo_tree)} HEAD"
+          end
+        end
+      end
     end
   end
 

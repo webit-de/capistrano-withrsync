@@ -42,7 +42,9 @@ Usage
 Capfile:
 
 ```ruby
+# do this instead of your normal scm installation
 require 'capistrano/withrsync'
+install_plugin Capistrano::SCM::Withrsync
 ```
 
 deploy as usual
@@ -61,7 +63,8 @@ Name                  | Default                                                 
 rsync_src             | tmp/deploy                                                                 | rsync src path (it will clone a shallow copy there, make sure you do not need this repo)
 rsync_dest            | shared/deploy                                                              | rsync dest path
 rsync_options         | --recursive --delete --delete-excluded <br>--exclude .git* --exclude .svn* | rsync options
-rsync_with_submodules | false                                                              | fetch and update git submodules for syncing
+rsync_with_submodules | false                                                                      | fetch and update git submodules for syncing
+repo_tree             | nil                                                                        | only sync a subdirectory of the repo (will be synced to the server as root; e.g. `/services/api` inside the repo will turn into `[deploy_dest]/` on the server)
 
 Overview
 --------
